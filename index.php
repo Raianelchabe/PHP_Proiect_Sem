@@ -67,29 +67,36 @@
 
         // Display table data
         if ($resultColumns->num_rows > 0) {
-          echo "<h2>$tableName</h2>";
-          echo "<table>";
-          echo "<tr>";
-          while ($rowColumns = $resultColumns->fetch_assoc()) {
-            echo "<th>{$rowColumns['Field']}</th>";
-          }
-          echo "<th>Action</th>"; // Column for delete button
-          echo "</tr>";
+        echo "<h2>$tableName</h2>";
+        echo "<table>";
+        echo "<tr>";
+        $primaryKeyColumn = ''; // Variable to store the primary key column name
+        while ($rowColumns = $resultColumns->fetch_assoc()) {
+            $columnName = $rowColumns['Field'];
+            echo "<th>$columnName</th>";
 
-          // Fetch and display table data
-          $sqlData = "SELECT * FROM $tableName";
-          $resultData = $conn->query($sqlData);
-
-          while ($rowData = $resultData->fetch_assoc()) {
-            echo "<tr>";
-            foreach ($rowData as $value) {
-              echo "<td>$value</td>";
+            // Check if the column is the primary key (you might need to adjust this based on your database schema)
+            if (strpos(strtolower($columnName), 'id') !== false) {
+            $primaryKeyColumn = $columnName;
             }
-            echo "<td><a href='?table=$tableName&action=delete&id={$rowData[$rowColumns['Field']]}'>Delete</a></td>";
-            echo "</tr>";
-          }
+        }
+        echo "<th>Action</th>"; // Column for delete button
+        echo "</tr>";
 
-          echo "</table>";
+        // Fetch and display table data
+        $sqlData = "SELECT * FROM $tableName";
+        $resultData = $conn->query($sqlData);
+
+        while ($rowData = $resultData->fetch_assoc()) {
+            echo "<tr>";
+            foreach ($rowData as $key => $value) {
+            echo "<td>$value</td>";
+            }
+            echo "<td><a href='?table=$tableName&action=delete&id={$rowData[$primaryKeyColumn]}'>Delete</a></td>";
+            echo "</tr>";
+        }
+
+        echo "</table>";
 
           // Form for inserting records
           echo "<h3>Insert Record</h3>";
