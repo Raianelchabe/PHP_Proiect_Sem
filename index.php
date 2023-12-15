@@ -29,7 +29,7 @@
       die("Connection failed: " . $conn->connect_error);
     }
 
-    // TODO: Comanda sa ia automat coloanele, si fara ghilimele la valori, si sa puna automat ID-urile
+    // Handle insert action
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'insert') {
       $tableName = $_POST['table'];
       $columns = $_POST['columns'];
@@ -42,6 +42,30 @@
         echo "<p>Record inserted successfully.</p>";
       } else {
         echo "<p>Error inserting record: " . $conn->error . "</p>";
+      }
+    }
+
+    // Handle update action
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update') {
+      $tableName = $_POST['table'];
+      $id = $_POST['id'];
+      $columns = explode(',', $_POST['columns']);
+      $values = explode(',', $_POST['values']);
+      $set = "";
+
+      for ($i = 0; $i < count($columns); $i++) {
+        $set .= "$columns[$i] = '$values[$i]',";
+      }
+
+      $set = rtrim($set, ','); // Remove trailing comma
+
+      $sqlUpdate = "UPDATE $tableName SET $set WHERE id = $id";
+      $resultUpdate = $conn->query($sqlUpdate);
+
+      if ($resultUpdate) {
+        echo "<p>Record updated successfully.</p>";
+      } else {
+        echo "<p>Error updating record: " . $conn->error . "</p>";
       }
     }
 
@@ -104,6 +128,21 @@
           echo "<br>";
           echo "<button type='submit'>Insert Record</button>";
           echo "</form>";
+
+          // Form for updating records
+          echo "<h3>Update Record</h3>";
+          echo "<form method='post' action=''>";
+          echo "<input type='hidden' name='action' value='update'>";
+          echo "<input type='hidden' name='table' value='$tableName'>";
+          echo "<input type='hidden' name='id' value='$idToUpdate'>"; // Add this
+          echo "<label for='columns'>Columns (comma-separated):</label>";
+          echo "<input type='text' name='columns' required>";
+          echo "<br>";
+          echo "<label for='values'>Values (comma-separated):</label>";
+          echo "<input type='text' name='values' required>";
+          echo "<br>";
+          echo "<button type='submit'>Update Record</button>";
+          echo "</form>";
         } else {
           echo "No data found for $tableName";
         }
@@ -125,7 +164,12 @@
       $tableToDeleteFrom = $_GET['table'];
       $idToDelete = $_GET['id'];
 
-      $sqlDelete = "DELETE FROM $tableToDeleteFrom WHERE id = $idToDelete";
+      // Fetch primary key column name
+      $sqlPrimaryKey = "SHOW KEYS FROM $tableToDeleteFrom WHERE Key_name = 'PRIMARY'";
+      $resultPrimaryKey = $connDelete->query($sqlPrimaryKey);
+      $primaryKeyColumnName = $resultPrimaryKey->fetch_assoc()['Column_name'];
+
+      $sqlDelete = "DELETE FROM $tableToDeleteFrom WHERE $primaryKeyColumnName = $idToDelete";
       $resultDelete = $connDelete->query($sqlDelete);
 
       if ($resultDelete) {
