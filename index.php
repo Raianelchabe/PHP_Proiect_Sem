@@ -18,6 +18,10 @@
   <h1>SQL Editor</h1>
 
   <?php
+  function startsWith($haystack, $needle) {
+    return substr($haystack, 0, strlen($needle)) === $needle;
+}
+
     $servername = "localhost";
     $username = "root";
     $password = "";
@@ -29,20 +33,40 @@
       die("Connection failed: " . $conn->connect_error);
     }
 
+    function tableExists($conn, $tableName) {
+      $checkTableQuery = "SHOW TABLES LIKE '$tableName'";
+      $result = $conn->query($checkTableQuery);
+      return $result->num_rows > 0;
+    }
+
+
     // TODO: Comanda sa ia automat coloanele, si fara ghilimele la valori, si sa puna automat ID-urile
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'insert') {
       $tableName = $_POST['table'];
-      $columns = $_POST['columns'];
-      $values = $_POST['values'];
+      // Create arrays to store columns and values
+      $columns = array();
+      $values = array();
 
-      $sqlInsert = "INSERT INTO $tableName ($columns) VALUES ($values)";
-      $resultInsert = $conn->query($sqlInsert);
+      // Iterate through POST data to get columns and values
+      foreach ($_POST as $key => $value) {
+          if ($key !== 'action' && $key !== 'table') {
+              $columns[] = $key;
+              $values[] = "'" . $conn->real_escape_string($value) . "'";
+          }
+      }
+
+      // Create SQL query using prepared statement
+      $sqlInsert = "INSERT INTO $tableName (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $values) . ")";
+      $stmt = $conn->prepare($sqlInsert);
+
+      // Execute the prepared statement
+      $resultInsert = $stmt->execute();
 
       if ($resultInsert) {
-        echo "<p>Record inserted successfully.</p>";
+          echo "<p>Record inserted successfully.</p>";
       } else {
-        echo "<p>Error inserting record: " . $conn->error . "</p>";
-      }
+          echo "<p>Error inserting record: " . $stmt->error . "</p>";
+   }
     }
 
     // Fetch table names
@@ -76,7 +100,7 @@
             echo "<th>$columnName</th>";
 
             // Check if the column is the primary key (you might need to adjust this based on your database schema)
-            if (strpos(strtolower($columnName), 'id') !== false) {
+            if ($primaryKeyColumn == '' && strpos(strtolower($columnName), 'id') !== false) {
             $primaryKeyColumn = $columnName;
             }
         }
@@ -92,23 +116,27 @@
             foreach ($rowData as $key => $value) {
             echo "<td>$value</td>";
             }
-            echo "<td><a href='?table=$tableName&action=delete&id={$rowData[$primaryKeyColumn]}'>Delete</a></td>";
+            echo "<td><a href='?table=$tableName&action=delete&id={$primaryKeyColumn}:" . urlencode($rowData[$primaryKeyColumn]) . "'>Delete</a></td>";
             echo "</tr>";
         }
 
         echo "</table>";
 
-          // Form for inserting records
-          echo "<h3>Insert Record</h3>";
-          echo "<form method='post' action=''>";
-          echo "<input type='hidden' name='action' value='insert'>";
-          echo "<input type='hidden' name='table' value='$tableName'>";
-          echo "<label for='columns'>Columns (comma-separated):</label>";
-          echo "<input type='text' name='columns' required>";
-          echo "<br>";
-          echo "<label for='values'>Values (comma-separated):</label>";
-          echo "<input type='text' name='values' required>";
-          echo "<br>";
+        $resultData1 = $conn->query($sqlData);
+        // Form for inserting records
+        echo "<h3>Insert Record</h3>";
+        echo "<form method='post' action=''>";
+        echo "<input type='hidden' name='action' value='insert'>";
+        echo "<input type='hidden' name='table' value='$tableName'>";
+        while ($rowData1 = $resultData1->fetch_assoc()) {
+          foreach ($rowData1 as $key => $value) {
+            if(!startsWith($key, $primaryKeyColumn)) {
+              echo "<label for='{$key}'>$key:</label>";
+              echo "<input type='text' name='$key' required>";
+              echo "</br>";
+            }
+          }
+          break;}
           echo "<button type='submit'>Insert Record</button>";
           echo "</form>";
         } else {
@@ -128,14 +156,17 @@
       if ($connDelete->connect_error) {
         die("Connection failed: " . $connDelete->connect_error);
       }
-
+      
+      //TODO: Change to take id from column
       $tableToDeleteFrom = $_GET['table'];
       $idToDelete = $_GET['id'];
-
-      $sqlDelete = "DELETE FROM $tableToDeleteFrom WHERE id = $idToDelete";
+      $idToDeleteIDCol = explode(":", $idToDelete);
+      $sqlDelete = "DELETE FROM $tableToDeleteFrom WHERE $idToDeleteIDCol[0]=$idToDeleteIDCol[1]";
       $resultDelete = $connDelete->query($sqlDelete);
 
       if ($resultDelete) {
+        header("Location: {$_SERVER['PHP_SELF']}?table=$tableToDeleteFrom");
+        exit();
         echo "<p>Record deleted successfully.</p>";
       } else {
         echo "<p>Error deleting record: " . $connDelete->error . "</p>";
