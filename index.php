@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <!-- CSS only Hello -->
+    <!-- CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 
     <!-- JS, Popper.js, and jQuery -->
@@ -23,11 +23,7 @@
         body {
             padding: 20px;
         }
-        /* h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            background-color: #3E6E93;
-        } */
+
         table {
             width: 100%;
         }
