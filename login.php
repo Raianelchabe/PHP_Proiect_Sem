@@ -4,7 +4,7 @@
         $password = $_POST['password'];
 
         // Replace 'username' and 'password' with your actual username and password
-        if($username === 'username' && $password === 'password'){
+        if($username === 'ura123' && $password === 'ura123'){
             echo "<script>window.open('index.php', '_blank');</script>";
         } else {
             echo "Try again";
@@ -26,18 +26,22 @@
 
     <style>
         .bg-green {
-            background-color: #58a79b;
+            background-color: #3E6E93;
         }
         .text-white {
             color: #fff;
         }
 
         .footer { 
+            margin:auto; 
+padding: 0px 0px 10px 0px; 
+width: 100%; 
+height:120px;
     position: absolute; 
     bottom: 0; 
     left: 0; 
-    z-index: 10;
-    background-color: #58a79b;
+    z-index: 0;
+    background-color: #3E6E93;
 }
     </style>
 </head>
@@ -45,7 +49,7 @@
 
     <!-- Header -->
     <header class="bg-green text-white p-3">
-        <h1 class="text-center">Welcome to My Website</h1>
+        <h1 class="text-center">Proiect Semestrial</h1>
     </header>
 
     <!-- Main content -->
@@ -74,8 +78,8 @@
     </div>
 
     <!-- Footer -->
-    <footer class="footer">
-        <p>© 2024 My Website. All rights reserved.</p>
+    <footer class="footer bg-green text-white p-3">
+        <p>© 2024 Florea Victor and El-chabe Raian. All rights reserved.</p>
     </footer>
 </body>
 </html>
