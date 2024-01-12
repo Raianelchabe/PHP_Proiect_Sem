@@ -1,23 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SQL Editor</title>
-  <style>
-    table {
-      border-collapse: collapse;
-      width: 100%;
-    }
-    table, th, td {
-      border: 1px solid black;
-    }
-  </style>
+    <!-- CSS only -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Editor</title>
+
+    <style>
+        .bg-green {
+            background-color: #3E6E93;
+        }
+        .text-white {
+            color: #fff;
+        }
+        body {
+            padding: 20px;
+        }
+        /* h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: #3E6E93;
+        } */
+        table {
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
 </head>
 <body>
-  <h1>SQL Editor</h1>
+    <!-- Header -->
+    <header class="bg-green text-white p-3">
+        <h1 class="text-center">Proiect Semestrial</h1>
+    </header>
+    
+    <h2>Search</h2>
+<form method="get" action="">
+  <input type="text" name="search" placeholder="Search...">
+  <button type="submit">Search</button>
+</form> 
 
   <?php
+  
   function startsWith($haystack, $needle) {
     return substr($haystack, 0, strlen($needle)) === $needle;
 }
@@ -69,6 +103,7 @@
    }
     }
 
+    
     // Fetch table names
     $sql = "SHOW TABLES";
     $result = $conn->query($sql);
@@ -137,7 +172,7 @@
             }
           }
           break;}
-          echo "<button type='submit'>Insert Record</button>";
+          echo "<button type='submit' class='btn btn-primary'>Insert Record</button>";
           echo "</form>";
         } else {
           echo "No data found for $tableName";
@@ -174,6 +209,22 @@
 
       $connDelete->close();
     }
+    
+
+    // Footer
+    function getFooter() {
+      $year = date('Y');
+      echo "
+          <footer class='bg-green text-white p-3'>
+              <p>© $year Florea Victor and El-chabe Raian. All rights reserved</p>
+          </footer>
+      </body>
+      </html>
+      ";
+  }
+
+  getFooter();
+
   ?>
 </body>
 </html>
