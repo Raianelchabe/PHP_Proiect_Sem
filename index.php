@@ -43,12 +43,6 @@
     <header class="bg-green text-white p-3">
         <h1 class="text-center">Proiect Semestrial</h1>
     </header>
-    
-    <h2>Search</h2>
-<form method="get" action="">
-  <input type="text" name="search" placeholder="Search...">
-  <button type="submit">Search</button>
-</form> 
 
   <?php
   
@@ -104,59 +98,75 @@
     }
 
     
-    // Fetch table names
     $sql = "SHOW TABLES";
     $result = $conn->query($sql);
-
+    
     if ($result->num_rows > 0) {
-      echo "<h2>Tables</h2>";
-      echo "<ul>";
-      while ($row = $result->fetch_assoc()) {
-        $tableName = $row['Tables_in_' . $dbname];
-        echo "<li><a href='?table=$tableName'>$tableName</a></li>";
-      }
-      echo "</ul>";
-
-      if (isset($_GET['table'])) {
-        $tableName = $_GET['table'];
-
-        // Fetch table columns
-        $sqlColumns = "DESCRIBE $tableName";
-        $resultColumns = $conn->query($sqlColumns);
-
-        // Display table data
-        if ($resultColumns->num_rows > 0) {
-        echo "<h2>$tableName</h2>";
-        echo "<table>";
-        echo "<tr>";
-        $primaryKeyColumn = ''; // Variable to store the primary key column name
-        while ($rowColumns = $resultColumns->fetch_assoc()) {
-            $columnName = $rowColumns['Field'];
-            echo "<th>$columnName</th>";
-
-            // Check if the column is the primary key (you might need to adjust this based on your database schema)
-            if ($primaryKeyColumn == '' && strpos(strtolower($columnName), 'id') !== false) {
-            $primaryKeyColumn = $columnName;
-            }
+        echo "<h2>Tables</h2>";
+        echo "<ul>";
+        while ($row = $result->fetch_assoc()) {
+            $tableName = $row['Tables_in_' . $dbname];
+            echo "<li><a href='?table=$tableName'>$tableName</a></li>";
         }
-        echo "<th>Action</th>"; // Column for delete button
-        echo "</tr>";
+        echo "</ul>";
+    
+        if (isset($_GET['table'])) {
+            $tableName = $_GET['table'];
+    
+            // Fetch table columns
+            $sqlColumns = "DESCRIBE $tableName";
+            $resultColumns = $conn->query($sqlColumns);
+    
+            // Display table data
+            if ($resultColumns->num_rows > 0) {
+                echo "<h2>$tableName</h2>";
+    
+                // Display search form
+                echo "<form method='get' action=''>
+                        <label for='search'>Search:</label>
+                        <input type='text' name='search' id='search' value='" . (isset($_GET['search']) ? $_GET['search'] : '') . "'>
+                        <input type='hidden' name='table' value='$tableName'>
+                        <input type='submit' value='Search'>
+                    </form>";
+    
+                echo "<table>";
+                echo "<tr>";
+                $primaryKeyColumn = ''; // Variable to store the primary key column name
+                $columnNames = [];
+    
+                while ($rowColumns = $resultColumns->fetch_assoc()) {
+                    $columnName = $rowColumns['Field'];
+                    $columnNames[] = $columnName;
+    
+                    echo "<th>$columnName</th>";
+    
+                    // Check if the column is the primary key (you might need to adjust this based on your database schema)
+                    if ($primaryKeyColumn == '' && strpos(strtolower($columnName), 'id') !== false) {
+                        $primaryKeyColumn = $columnName;
+                    }
+                }
+    
+                echo "<th>Action</th>"; // Column for delete button
+                echo "</tr>";
+    
+                // Fetch and display filtered table data
+                $searchTerm = isset($_GET['search']) ? $_GET['search'] : '';
+                $searchColumns = implode(',', $columnNames);
+                $sqlData = "SELECT * FROM $tableName WHERE CONCAT_WS('', $searchColumns) LIKE '%$searchTerm%'";
+                $resultData = $conn->query($sqlData);
+    
+                while ($rowData = $resultData->fetch_assoc()) {
+                    echo "<tr>";
+                    foreach ($rowData as $key => $value) {
+                        echo "<td>$value</td>";
+                    }
+                    echo "<td><a href='?table=$tableName&action=delete&id={$primaryKeyColumn}:" . urlencode($rowData[$primaryKeyColumn]) . "'>Delete</a></td>";
+                    echo "</tr>";
+                }
+    
+                echo "</table>";
 
-        // Fetch and display table data
-        $sqlData = "SELECT * FROM $tableName";
-        $resultData = $conn->query($sqlData);
-
-        while ($rowData = $resultData->fetch_assoc()) {
-            echo "<tr>";
-            foreach ($rowData as $key => $value) {
-            echo "<td>$value</td>";
-            }
-            echo "<td><a href='?table=$tableName&action=delete&id={$primaryKeyColumn}:" . urlencode($rowData[$primaryKeyColumn]) . "'>Delete</a></td>";
-            echo "</tr>";
-        }
-
-        echo "</table>";
-
+        
         $resultData1 = $conn->query($sqlData);
         // Form for inserting records
         echo "<h3>Insert Record</h3>";
